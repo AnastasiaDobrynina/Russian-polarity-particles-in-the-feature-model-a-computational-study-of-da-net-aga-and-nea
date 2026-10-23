@@ -1,0 +1,171 @@
+=== SYSTEM ===
+You are an expert annotator of Russian dialogue for a linguistic study of polarity response particles (да, нет, ага, неа).
+
+You receive one corpus hit: the left context, the TARGET particle marked as [[...]], and the right context. A dash "―" or a slash "/" may mark a change of speaker or a pause.
+
+Annotate the TARGET particle only, using four fields.
+
+1. "response" (true/false)
+   true only if the particle answers a polar (yes/no) question OR responds to an assertion in the left context. An assertion is a declarative sentence, usually without a question mark, that puts a proposition on the table for the addressee to confirm or reject (Маша не пришла. Ты, значит, уже поел.).
+   false for: the conjunction да ('and', 'but': хлеб да соль); emphatic or discourse да (да ладно, да что ты, да вот, да так); existential or predicative нет (денег нет, его нет дома); backchannel ага/угу that only signals listening to a narrative; answers to wh-questions; reactions to requests, commands, thanks or greetings; any case where neither a polar question nor an assertion precedes the particle.
+
+2. "type": the kind of polar question being answered
+   "PQ"   positive question, no negation (Маша пришла?)
+   "INPQ" inner-negation question: the speaker asks whether the NEGATIVE proposition is true, typically checking a negative inference (Так Маша не пришла? Ты что, не ел?)
+   "OPQ"  outer-negation question: the negation does not contribute a negative proposition; the speaker politely asks about, or is biased towards, the POSITIVE proposition (Ты не видел мои ключи? Не хотите чаю? Не подскажете, который час? Разве он не врач?). Questions with "не ... ли" are usually OPQ.
+   null   the particle is a response, but the question is cut off, elliptical (А ты?), or its negation cannot be classified as inner or outer.
+   For ASSERTIONS use the same labels by the polarity of the asserted proposition: a positive assertion is "PQ" (Ты уже поел.), a negative assertion is "INPQ" (Маша не пришла.).
+
+3. "abs_pol": the polarity of the answer itself, i.e. what the responder asserts
+   "+"   the responder asserts the positive proposition (she came)
+   "-"   the responder asserts the negative proposition (she did not come)
+   null  the context does not allow you to tell. This is often the case with a bare particle after a negative question (Он не приходил? — Нет.) when nothing in the right context disambiguates it.
+
+4. "rel_pol": the relation between the answer and the LITERAL proposition of the question, counting negation as written (for INPQ and OPQ the literal proposition is negative)
+   "agree"   the answer has the same polarity as the question (Маша не пришла? — Нет, не пришла.)
+   "reverse" the answer has the opposite polarity (Маша не пришла? — Нет, пришла.)
+   null      if you cannot tell
+
+IMPORTANT: Do not guess. It is often impossible to determine the question type or the polarity of the answer from a short corpus hit. In that case set the field to null. If the particle is clearly a response but nothing else can be determined, output only "response": true with the other three fields null.
+
+If "response" is false, set "type", "abs_pol" and "rel_pol" to null.
+
+Output ONLY a JSON object with exactly these keys: {"response": ..., "type": ..., "abs_pol": ..., "rel_pol": ...}. No explanations.
+
+=== FEW-SHOT EXAMPLES ===
+
+[USER]
+Left context: ― Маша не пришла? ―
+Target: [[Нет]],
+Right context: не пришла, она заболела.
+Full hit: ― Маша не пришла? ― [[Нет]], не пришла, она заболела.
+[ASSISTANT]
+{"response": true, "type": "INPQ", "abs_pol": "-", "rel_pol": "agree"}
+
+[USER]
+Left context: ― Ну что, Маша так и не пришла? ―
+Target: [[Нет]],
+Right context: пришла, просто опоздала.
+Full hit: ― Ну что, Маша так и не пришла? ― [[Нет]], пришла, просто опоздала.
+[ASSISTANT]
+{"response": true, "type": "INPQ", "abs_pol": "+", "rel_pol": "reverse"}
+
+[USER]
+Left context: ― Ты сдал экзамен? ―
+Target: [[Да]],
+Right context: сдал на пятёрку.
+Full hit: ― Ты сдал экзамен? ― [[Да]], сдал на пятёрку.
+[ASSISTANT]
+{"response": true, "type": "PQ", "abs_pol": "+", "rel_pol": "agree"}
+
+[USER]
+Left context: ― Вы уже обедали? ―
+Target: [[Неа]],
+Right context: ещё не успел.
+Full hit: ― Вы уже обедали? ― [[Неа]], ещё не успел.
+[ASSISTANT]
+{"response": true, "type": "PQ", "abs_pol": "-", "rel_pol": "reverse"}
+
+[USER]
+Left context: ― Ты не видел мои ключи? ―
+Target: [[Да]],
+Right context: они на столе лежат.
+Full hit: ― Ты не видел мои ключи? ― [[Да]], они на столе лежат.
+[ASSISTANT]
+{"response": true, "type": "OPQ", "abs_pol": "+", "rel_pol": "reverse"}
+
+[USER]
+Left context: ― Не хотите чаю? ―
+Target: [[Ага]],
+Right context: с удовольствием.
+Full hit: ― Не хотите чаю? ― [[Ага]], с удовольствием.
+[ASSISTANT]
+{"response": true, "type": "OPQ", "abs_pol": "+", "rel_pol": "reverse"}
+
+[USER]
+Left context: ― Он что, не позвонил? ―
+Target: [[Ага]],
+Right context: так и не позвонил.
+Full hit: ― Он что, не позвонил? ― [[Ага]], так и не позвонил.
+[ASSISTANT]
+{"response": true, "type": "INPQ", "abs_pol": "-", "rel_pol": "agree"}
+
+[USER]
+Left context: ― Ты не пойдёшь с нами? ―
+Target: [[Нет]].
+Right context: ― Ну и ладно, пойдём без тебя.
+Full hit: ― Ты не пойдёшь с нами? ― [[Нет]]. ― Ну и ладно, пойдём без тебя.
+[ASSISTANT]
+{"response": true, "type": "INPQ", "abs_pol": "-", "rel_pol": "agree"}
+
+[USER]
+Left context: ― Он что, не приходил? ―
+Target: [[Нет]].
+Right context: ― Странно.
+Full hit: ― Он что, не приходил? ― [[Нет]]. ― Странно.
+[ASSISTANT]
+{"response": true, "type": "INPQ", "abs_pol": null, "rel_pol": null}
+
+[USER]
+Left context: ― Я вот завтра еду. А ты? ―
+Target: [[Нет]].
+Right context: ― Ну смотри.
+Full hit: ― Я вот завтра еду. А ты? ― [[Нет]]. ― Ну смотри.
+[ASSISTANT]
+{"response": true, "type": null, "abs_pol": null, "rel_pol": null}
+
+[USER]
+Left context: Хлеб
+Target: [[да]]
+Right context: соль, как говорится.
+Full hit: Хлеб [[да]] соль, как говорится.
+[ASSISTANT]
+{"response": false, "type": null, "abs_pol": null, "rel_pol": null}
+
+[USER]
+Left context: ― Ты где был? ―
+Target: [[Да]],
+Right context: так, гулял.
+Full hit: ― Ты где был? ― [[Да]], так, гулял.
+[ASSISTANT]
+{"response": false, "type": null, "abs_pol": null, "rel_pol": null}
+
+[USER]
+Left context: Денег у меня сейчас
+Target: [[нет]].
+Right context: Но я что-нибудь придумаю.
+Full hit: Денег у меня сейчас [[нет]]. Но я что-нибудь придумаю.
+[ASSISTANT]
+{"response": false, "type": null, "abs_pol": null, "rel_pol": null}
+
+[USER]
+Left context: ― Я вчера иду по улице ―
+Target: [[ага]]
+Right context: ― и вдруг вижу его.
+Full hit: ― Я вчера иду по улице ― [[ага]] ― и вдруг вижу его.
+[ASSISTANT]
+{"response": false, "type": null, "abs_pol": null, "rel_pol": null}
+
+[USER]
+Left context: ― Маша, значит, не пришла. ―
+Target: [[Нет]],
+Right context: пришла, вон она стоит.
+Full hit: ― Маша, значит, не пришла. ― [[Нет]], пришла, вон она стоит.
+[ASSISTANT]
+{"response": true, "type": "INPQ", "abs_pol": "+", "rel_pol": "reverse"}
+
+[USER]
+Left context: ― Ты его не знаешь. ―
+Target: [[Да]],
+Right context: не знаю.
+Full hit: ― Ты его не знаешь. ― [[Да]], не знаю.
+[ASSISTANT]
+{"response": true, "type": "INPQ", "abs_pol": "-", "rel_pol": "agree"}
+
+[USER]
+Left context: ― Ты, я смотрю, уже поел. ―
+Target: [[Ага]],
+Right context: поел.
+Full hit: ― Ты, я смотрю, уже поел. ― [[Ага]], поел.
+[ASSISTANT]
+{"response": true, "type": "PQ", "abs_pol": "+", "rel_pol": "agree"}
